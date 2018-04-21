@@ -61,10 +61,15 @@ var tagCmd = &cobra.Command{
 				fmt.Println("error: ", err)
 				continue
 			}
+			fmt.Printf("v%d.%d.%d\n", sv.Major, sv.Minor, sv.Patch)
 			if sv.Major > maxMajor {
 				maxMajor = sv.Major
 				maxMinor = 0
 				maxPatch = 0
+			}
+
+			if sv.Major < maxMajor {
+				continue
 			}
 
 			if sv.Minor > maxMinor {
@@ -72,10 +77,13 @@ var tagCmd = &cobra.Command{
 				maxPatch = 0
 			}
 
+			if sv.Minor < maxMinor {
+				continue
+			}
+
 			if sv.Patch > maxPatch {
 				maxPatch = sv.Patch
 			}
-			fmt.Printf("v%d.%d.%d\n", sv.Major, sv.Minor, sv.Patch)
 		}
 		var tagged bool
 		if Major {
@@ -132,7 +140,6 @@ func init() {
 	tagCmd.PersistentFlags().BoolVarP(&Patch, "patch", "p", false, "increment patch version")
 	tagCmd.PersistentFlags().StringVarP(&DeleteTag, "delete", "d", "", "delete a tagged version")
 
-
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 }
@@ -176,7 +183,7 @@ func deleteTag(repo *git.Repository, tag string) error {
 
 	err = git.Push(repo.Path, git.PushOptions{
 		Remote: "origin",
-		Branch: ":"+tag,
+		Branch: ":" + tag,
 		Force:  false,
 	})
 
@@ -184,7 +191,7 @@ func deleteTag(repo *git.Repository, tag string) error {
 		return errors.Wrap(err, "unable to push to origin")
 	}
 
- 	return errors.Wrap(err, "unable to delete tag")
+	return errors.Wrap(err, "unable to delete tag")
 }
 
 func tagString(major, minor, patch uint64) string {
